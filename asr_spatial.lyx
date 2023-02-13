@@ -5,6 +5,19 @@
 \save_transient_properties true
 \origin unavailable
 \textclass article
+\begin_preamble
+\usepackage{heuristica}
+\usepackage[heuristica,vvarbb,bigdelims]{newtxmath}
+\usepackage[T1]{fontenc}
+\renewcommand*\oldstylenums[1]{\textosf{#1}}
+\usepackage{color}
+\definecolor{slateblue}{RGB}{22,88,143}
+\usepackage{doi}
+
+\usepackage{datetime}
+\date{\today\ at \currenttime}
+\usepackage{tcolorbox}
+\end_preamble
 \use_default_options true
 \maintain_unincluded_children false
 \language english
@@ -28,10 +41,21 @@
 \output_sync 0
 \bibtex_command default
 \index_command default
-\paperfontsize default
-\use_hyperref false
+\paperfontsize 12
+\spacing single
+\use_hyperref true
+\pdf_bookmarks true
+\pdf_bookmarksnumbered false
+\pdf_bookmarksopen false
+\pdf_bookmarksopenlevel 1
+\pdf_breaklinks true
+\pdf_pdfborder true
+\pdf_colorlinks true
+\pdf_backref false
+\pdf_pdfusetitle true
+\pdf_quoted_options "citecolor=slateblue,linkcolor=slateblue,urlcolor=slateblue"
 \papersize default
-\use_geometry false
+\use_geometry true
 \use_package amsmath 1
 \use_package amssymb 1
 \use_package cancel 1
@@ -42,8 +66,9 @@
 \use_package stackrel 1
 \use_package stmaryrd 1
 \use_package undertilde 1
-\cite_engine basic
-\cite_engine_type default
+\cite_engine natbib
+\cite_engine_type authoryear
+\biblio_style plainnat
 \use_bibtopic false
 \use_indices false
 \paperorientation portrait
@@ -55,6 +80,10 @@
 \shortcut idx
 \color #008000
 \end_index
+\leftmargin 2.5cm
+\topmargin 2.5cm
+\rightmargin 2.5cm
+\bottommargin 2.5cm
 \secnumdepth 3
 \tocdepth 3
 \paragraph_separation indent
@@ -75,21 +104,153 @@
 
 \begin_body
 
-\begin_layout Section
-Spatial model
+\begin_layout Title
+Spatial Variation in Adult Sex Ratios
 \end_layout
 
 \begin_layout Standard
-We have two different types of patch which fluctuate at rates 
-\begin_inset Formula $s_{1\rightarrow2}$
+Similar to previous models (e.g., 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "McNamara2011"
+literal "false"
+
+\end_inset
+
+), we consider a population distributed over an infinite number of sites.
+ We consider that sites can be in one of two environmental states 
+\begin_inset Formula $i\in\{1,2\}$
+\end_inset
+
+ which vary in aspects of sex-specific reproduction and survival.
+ Similar to 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "McNamara2011"
+literal "false"
+
+\end_inset
+
+, we first ignore effects of density, but we will consider this later.
+ 
+\end_layout
+
+\begin_layout Itemize
+Environmental states of each site change at rates 
+\begin_inset Formula $\sigma_{1}$
 \end_inset
 
  and 
-\begin_inset Formula $s_{2\rightarrow1}$
+\begin_inset Formula $\sigma_{2}$
+\end_inset
+
+, so that the proportion of sites in type 
+\begin_inset Formula $i$
+\end_inset
+
+ is given by 
+\begin_inset Formula $\rho_{i}=\sigma_{i}/(\sigma_{1}+\sigma_{2})$
 \end_inset
 
 .
- In each patch, individuals are involved in a time-in, time-out process.
+\end_layout
+
+\begin_layout Itemize
+A proportion 
+\begin_inset Formula $d_{\mathrm{f}}$
+\end_inset
+
+ (
+\begin_inset Formula $d_{\mathrm{m}}$
+\end_inset
+
+) of females (males) breed on a randomly selected remote site, whereas a
+ proportion of 
+\begin_inset Formula $1-d_{\mathrm{f}}$
+\end_inset
+
+ (
+\begin_inset Formula $1-d_{\mathrm{m}}$
+\end_inset
+
+) of females (males) breed on the natal site.
+\end_layout
+
+\begin_layout Standard
+Numbers of resident males and females in each environment at time 
+\begin_inset Formula $t$
+\end_inset
+
+ are given by the vector 
+\begin_inset Formula $\mathbf{n}_{t}^{\mathrm{T}}=[n_{\mathrm{f}1,t},n_{\mathrm{m}1,t},n_{\mathrm{f}2,t},n_{\mathrm{m}2,t}]$
+\end_inset
+
+, resulting in the population dynamic 
+\begin_inset Formula $\mathbf{n}_{t+1}=\mathbf{A}\mathbf{n}_{t}$
+\end_inset
+
+.
+ Here, the element 
+\begin_inset Formula $a_{ijkl}$
+\end_inset
+
+ of the projection matrix 
+\begin_inset Formula $\mathbf{A}$
+\end_inset
+
+ reflects the expected numbers of resident breeders of sex 
+\begin_inset Formula $i$
+\end_inset
+
+ that live in environment 
+\begin_inset Formula $j$
+\end_inset
+
+, produced by resident breeders of sex 
+\begin_inset Formula $k$
+\end_inset
+
+ living in environment 
+\begin_inset Formula $l$
+\end_inset
+
+.
+ For example, we have
+\begin_inset Formula 
+\begin{align*}
+a_{\mathrm{f}1\mathrm{f}1} & =\left(1-d_{\mathrm{f}}\right)
+\end{align*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{align*}
+\mathbf{A} & =
+\end{align*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{align*}
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset bibtex
+LatexCommand bibtex
+btprint "btPrintCited"
+bibfiles "~/Projects/databases/transgenerational"
+options "bram"
+
+\end_inset
+
+
 \end_layout
 
 \end_body
