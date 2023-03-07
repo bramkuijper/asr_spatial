@@ -6,10 +6,10 @@
 \origin unavailable
 \textclass article
 \begin_preamble
-\usepackage{heuristica}
-\usepackage[heuristica,vvarbb,bigdelims]{newtxmath}
-\usepackage[T1]{fontenc}
-\renewcommand*\oldstylenums[1]{\textosf{#1}}
+%\usepackage{heuristica}
+%\usepackage[heuristica,vvarbb,bigdelims]{newtxmath}
+%\usepackage[T1]{fontenc}
+%\renewcommand*\oldstylenums[1]{\textosf{#1}}
 \usepackage{color}
 \definecolor{slateblue}{RGB}{22,88,143}
 \usepackage{doi}
@@ -131,12 +131,41 @@ literal "false"
 
 \end_inset
 
-, we first ignore effects of density, but we will consider this later.
- 
+, we first ignore effects of density, but we aim to consider this later.
+ We initially consider that individuals only Also, later models could consider
+ the role of demographic stochasticity on the ASR.
 \end_layout
 
 \begin_layout Itemize
-Environmental states of each site change at rates 
+Females and males are either in the local mating pool (time in) or are providing
+ care to the offspring (time out).
+ Let 
+\begin_inset Formula $I_{i}$
+\end_inset
+
+ and 
+\begin_inset Formula $\tilde{I}_{i}$
+\end_inset
+
+ be the number of females and males in the mating pool (time-in) in environment
+ 
+\begin_inset Formula $i$
+\end_inset
+
+, while 
+\begin_inset Formula $O_{i}$
+\end_inset
+
+ and 
+\begin_inset Formula $\tilde{O}_{i}$
+\end_inset
+
+ are the number of females and males, highlighting that the numbers of females
+ and males in time in and time out depend on the local environment;
+\end_layout
+
+\begin_layout Itemize
+The environmental states of sites of either type change at rates 
 \begin_inset Formula $\sigma_{1}$
 \end_inset
 
@@ -149,91 +178,226 @@ Environmental states of each site change at rates
 \end_inset
 
  is given by 
-\begin_inset Formula $\rho_{i}=\sigma_{i}/(\sigma_{1}+\sigma_{2})$
+\begin_inset Formula $\rho_{i}=\sigma_{j\neq i}/(\sigma_{1}+\sigma_{2})$
+\end_inset
+
+;
+\end_layout
+
+\begin_layout Itemize
+To vary mean relatedness between carers and offspring, the number of males
+ and females involved in a breeding event is given by 
+\end_layout
+
+\begin_layout Itemize
+The operational sex ratio 
+\begin_inset Formula $r_{Oi}$
+\end_inset
+
+ now depends on the local environment 
+\begin_inset Formula $i$
+\end_inset
+
+.
+ As there is dispersal and enviromental change, the expression is substantially
+ more complicated than eq.
+ (A6) in 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Kokko2008"
+literal "false"
+
 \end_inset
 
 .
 \end_layout
 
 \begin_layout Itemize
-A proportion 
-\begin_inset Formula $d_{\mathrm{f}}$
+Female and male mating rates in each environment are given by 
+\begin_inset Formula $a_{i}$
 \end_inset
 
- (
-\begin_inset Formula $d_{\mathrm{m}}$
+ and 
+\begin_inset Formula $\tilde{a}_{i}$
 \end_inset
 
-) of females (males) breed on a randomly selected remote site, whereas a
- proportion of 
-\begin_inset Formula $1-d_{\mathrm{f}}$
+ respectively, where 
+\begin_inset Formula $a_{i}=M_{i}n_{i}r_{Oi}^{1/2}$
 \end_inset
 
- (
-\begin_inset Formula $1-d_{\mathrm{m}}$
-\end_inset
-
-) of females (males) breed on the natal site.
-\end_layout
-
-\begin_layout Standard
-Numbers of resident males and females in each environment at time 
-\begin_inset Formula $t$
-\end_inset
-
- are given by the vector 
-\begin_inset Formula $\mathbf{n}_{t}^{\mathrm{T}}=[n_{\mathrm{f}1,t},n_{\mathrm{m}1,t},n_{\mathrm{f}2,t},n_{\mathrm{m}2,t}]$
-\end_inset
-
-, resulting in the population dynamic 
-\begin_inset Formula $\mathbf{n}_{t+1}=\mathbf{A}\mathbf{n}_{t}$
+ and 
+\begin_inset Formula $\tilde{a}_{i}=M_{i}\tilde{n}_{i}r_{Oi}^{-1/2}$
 \end_inset
 
 .
- Here, the element 
-\begin_inset Formula $a_{ijkl}$
+ Similar to 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Fromhage2016a"
+literal "false"
+
 \end_inset
 
- of the projection matrix 
-\begin_inset Formula $\mathbf{A}$
+, the parameter 
+\begin_inset Formula $M_{i}$
 \end_inset
 
- reflects the expected numbers of resident breeders of sex 
+ reflects species-specific factors such as local population density and
+ movement capacity, yet this parameter is allowed to depend on the local
+ environment 
 \begin_inset Formula $i$
 \end_inset
 
- that live in environment 
-\begin_inset Formula $j$
+.
+\end_layout
+
+\begin_layout Itemize
+Similar to 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Fromhage2016a"
+literal "false"
+
 \end_inset
 
-, produced by resident breeders of sex 
-\begin_inset Formula $k$
+ and 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Kokko2008"
+literal "false"
+
 \end_inset
 
- living in environment 
-\begin_inset Formula $l$
+, after eggs are fertilized, parents in a type 
+\begin_inset Formula $i$
+\end_inset
+
+ environment stay with current offspring for a time period 
+\begin_inset Formula $T_{i}$
+\end_inset
+
+ (females) or 
+\begin_inset Formula $\tilde{T}_{i}$
 \end_inset
 
 .
- For example, we have
+ 
+\end_layout
+
+\begin_layout Itemize
+A proportion 
+\begin_inset Formula $d_{i}$
+\end_inset
+
+ (
+\begin_inset Formula $\tilde{d}_{i}$
+\end_inset
+
+) of females (males) born on a type-
+\begin_inset Formula $i$
+\end_inset
+
+ patch breed on a randomly selected remote site, whereas a proportion of
+ 
+\begin_inset Formula $1-d_{i}$
+\end_inset
+
+ (
+\begin_inset Formula $1-\tilde{d}_{i}$
+\end_inset
+
+) of females (males) breed on the natal site;
+\end_layout
+
+\begin_layout Section
+Durations time in and time out
+\end_layout
+
+\begin_layout Standard
+To calculate the operational sex ratio, we need to calculate the total time
+ females and males spend in and out.
+ Focusing on a female, they end a `time-in' period in environment 
+\begin_inset Formula $i$
+\end_inset
+
+ (i) when they die at rate 
+\begin_inset Formula $\mu_{I1}$
+\end_inset
+
+, (ii) mate at rate 
+\begin_inset Formula $a_{i}$
+\end_inset
+
+, (iii) or when the environment 
+\begin_inset Formula $i$
+\end_inset
+
+ changes (rate 
+\begin_inset Formula $\sigma_{i}$
+\end_inset
+
+).
+ Hence, a female's `time in' in environment 
+\begin_inset Formula $i$
+\end_inset
+
+ is exponentially distributed with mean duration
 \begin_inset Formula 
 \begin{align*}
-a_{\mathrm{f}1\mathrm{f}1} & =\left(1-d_{\mathrm{f}}\right)
+\frac{\int_{t=0}^{\infty}t\left(\mu_{Ii}+a_{i}+\sigma_{i}\right)\mathrm{e}^{-\left(\mu_{Ii}+a_{i}+\sigma_{i}\right)t}\mathrm{d}t}{\int_{t=0}^{\infty}\left(\mu_{Ii}+a_{i}+\sigma_{i}\right)\mathrm{e}^{-\left(\mu_{Ii}+a_{i}+\sigma_{i}\right)t}\mathrm{d}t} & =\frac{1}{\mu_{Ii}+a_{i}+\sigma_{i}}.
 \end{align*}
 
 \end_inset
 
-
-\begin_inset Formula 
-\begin{align*}
-\mathbf{A} & =
-\end{align*}
-
+We need to calculate for a female the number of times she is in `time in'
+ in environment 
+\begin_inset Formula $i$
 \end_inset
 
+.
+ A female is currently in `time in' in environment 
+\begin_inset Formula $i$
+\end_inset
 
+ can return to that same state in the following ways: The probability that
+ the next state is `time out' in environment 
+\begin_inset Formula $i$
+\end_inset
+
+, rather than dead or time out in environment 
+\begin_inset Formula $j\neq i$
+\end_inset
+
+ is 
+\begin_inset Formula $a_{i}/(a_{i}+\mu_{Ii}+\mu_{i})$
+\end_inset
+
+.
+ While being in `time out', the environment could potentially switch back
+ and forth between 
+\begin_inset Formula $i$
+\end_inset
+
+ and 
+\begin_inset Formula $j$
+\end_inset
+
+, which affects the individual's survival probability.
+ The probability that a `time out' individual which left 
+\end_layout
+
+\begin_layout Section
+Ecological dynamics
+\end_layout
+
+\begin_layout Standard
+We then have
 \begin_inset Formula 
 \begin{align*}
+\frac{\mathrm{d}I_{1}}{\mathrm{d}t} & =-\left(a_{1}+\sigma_{1}+\mu_{I1}\right)I_{1}+\frac{1}{T_{1}}O_{1}+\sigma_{2}I_{2}\\
+ & +\frac{1}{2}\frac{1}{r_{1}+1}I_{1}a_{1}bS_{1}\left[T_{1},\tilde{T}_{1}\right]\left(1-d_{1}+d_{1}\rho_{1}\right)+\frac{1}{2}\frac{1}{r_{2}+1}I_{2}a_{2}bS_{2}\left[T_{2},\tilde{T}_{2}\right]d_{2}\rho_{1}\\
+ & +\frac{1}{2}\frac{1}{r_{1}+1}\tilde{I}_{1}\tilde{a}_{1}bS_{1}\left[T_{1},\tilde{T}_{1}\right]\left(1-d_{1}+d_{1}\rho_{1}\right)+\frac{1}{4}\frac{1}{r_{2}+1}\tilde{I}_{2}\tilde{a}_{2}bS_{2}\left[T_{2},\tilde{T}_{2}\right]d_{2}\rho_{1}\\
+\frac{\mathrm{d}O_{1}}{\mathrm{d}t} & =-\left(\frac{1}{T_{1}}+\mu_{O1}+\sigma_{1}\right)O_{1}
 \end{align*}
 
 \end_inset
