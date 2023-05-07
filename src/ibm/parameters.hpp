@@ -1,0 +1,48 @@
+#ifndef _PARAMETERS_HPP
+#define _PARAMETERS_HPP
+
+#include <string>
+
+enum Sex
+{
+    F = 0, 
+    M = 1
+};
+
+class Parameters
+{
+    public:
+        double init_Tf = 1.0;
+        double init_Tm = 1.0;
+
+        int npatches = 1;
+        int nf_per_patch_init = 5;
+        int nm_per_patch_init = 5;
+        std::string base_name = "sim_asr";
+
+        long unsigned max_time_step = 30;
+
+        // mortalities
+        double mu_mate[2] = {0.001,0.001}; // female and male mortalities while mating
+        double mu_care[2] = {0.001,0.001}; // female and male mortalities while caring
+        double mu_juv[2] = {0.001,0.001}; // female and male mortalities while juvenile
+
+        // mutation rates
+        double mutate_T[2] = {0.05,0.05}; // mutation rates
+        double sdmu = 0.02; // mutational effect size distribution: standard deviation
+
+        int max_time_juv[2] = {20,20};
+
+        // synergy parameter
+        double sigma = 0.0; 
+        
+        double D = 20.0;
+
+        double gamma = 0.003;
+
+        double prob_male = 0.5;
+
+        double d[2] = {0.0,0.0};
+};
+
+#endif
