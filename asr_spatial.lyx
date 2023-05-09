@@ -328,12 +328,20 @@ To calculate the operational sex ratio, we need to calculate the total time
 \begin_inset Formula $a_{i}$
 \end_inset
 
-, (iii) or when the environment 
+ (and hence enter `time-out' in environment 
+\begin_inset Formula $i$
+\end_inset
+
+), (iii) or when the environment 
 \begin_inset Formula $i$
 \end_inset
 
  changes (rate 
 \begin_inset Formula $\sigma_{i}$
+\end_inset
+
+; and hence they enter `time-in' in environment 
+\begin_inset Formula $j$
 \end_inset
 
 ).

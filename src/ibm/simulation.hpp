@@ -44,16 +44,45 @@ class Simulation
     public:
         Simulation(Parameters const &params);
 
+        // overall mortality function
         void general_mortality();
+
+        // mortality due to mating
         void mate_mortality(Patch &patch_i);
+
+        // mortality due to care
         void care_mortality(Patch &patch_i);
+
+        // mortality as a juv
         void juvenile_mortality(Patch &patch_i);
+
+        // check which juveniles can mature
         void maturation();
+
+        // let individuals randomly choose a mate
         void mating();
+
+        // calculate parental care
         double calculate_parental_care(Individual const &mom
                 ,Individual const &dad);
 
+        // juvenile survival probability dependent on duration of care 
+        // and local population size
         double care_survival_prob(double const Ttot, int const local_pop_size);
+
+        // check when parents
+        void care_ends();
+
+        // calculate whether an individual ran out of time caring
+        bool ran_out_of_caring_time(int const current_time, double const evolved_time);
+
+        // write out header on first line for summary stats
+        void write_data_headers();
+        
+        // write out summary stats
+        void write_data();
+        void write_parameters();
+
 };
 
 #endif

@@ -22,17 +22,31 @@ Simulation::Simulation(Parameters const &params_arg) :
     ,metapop(params.npatches,Patch(params)) // set up all the patches of the metapop
     ,data_file{params.base_name.c_str()} // start the file to write data to
 {
+    write_data_headers();
+
     // go over all time steps
     for (time_step = 0; 
             time_step < params.max_time_step; ++time_step)
     {
+        // remove all individuals whose care has ended
+        // and put them again in mating pool
+        care_ends();
+
         general_mortality();
 
         maturation();
 
         mating();
+
+        if (time_step % params.output_interval == 0)
+        {
+            write_data();
+        }
     }
+
+    write_parameters();
 } // end Simulation::Simulation()
+
 
 // calculates the amount of parental care (in terms of time steps)
 // produced by a pair of Individuals
@@ -108,16 +122,6 @@ void Simulation::mating()
             metapop[patch_idx].juvenile[M].size() + 
             metapop[patch_idx].juvenile[F].size();
 
-        //// make a vector with unique indices of the common sex
-        //std::vector <int> random_partner(0, ncommon_sex);
-
-        //// fill vector
-        //for (int common_sex_idx = 0; 
-        //        common_sex_idx < ncommon_sex; ++common_sex_idx)
-        //{
-        //    random_partner.push_back(common_sex_idx);
-        //}
-
         // shuffle list elements containing members of the common sex
         std::shuffle(
                 metapop[patch_idx].adult_mate[common_sex].begin(), 
@@ -127,7 +131,7 @@ void Simulation::mating()
         // we don't need to shuffle the rare sex (as the common sex is already
         // shuffled, guaranteeing random mating)
         for (int rare_sex_idx = 0;
-                rare_sex_idx < nrare_sex
+                rare_sex_idx < nrare_sex;
                 ++rare_sex_idx
                 )
         {
@@ -161,7 +165,7 @@ void Simulation::mating()
                 }
 
                 // add offspring to stack
-                metapop[destination_patch].adult_mate[offspring_sex].push_back(Kid);
+                metapop[destination_patch].juvenile[offspring_sex].push_back(Kid);
             }
         } //  end for int rare sex
 
@@ -190,13 +194,18 @@ void Simulation::mating()
         // of the common sex that have now mated
         // these are the members [0, nrare_sex) 
         // of the random_partner[] vector
-        for (
-            std::vector<Individual>::iterator ind_it = 
+        
+        std::vector<Individual>::iterator ind_it = 
                     metapop[patch_idx].adult_mate[common_sex].begin();
-                    ind_it != metapop[patch_idx].adult_mate[common_sex].begin() + nrare_sex;
-        )
+
+        assert(nrare_sex <= metapop[patch_idx].adult_mate[common_sex].size());
+
+        for (
+                int common_sex_idx = 0;
+                common_sex_idx < nrare_sex;
+                ++common_sex_idx)
         {
-            // add to care pop
+            :
             ind_it->time_current_state = 0;
             metapop[patch_idx].adult_care[common_sex].push_back(*ind_it);
 
@@ -229,7 +238,7 @@ void Simulation::maturation()
                     metapop[patch_idx].adult_mate[sex_idx].push_back(*ind_it);
 
                     // remove from juv stack
-                    metapop[patch_idx].juvenile[sex_idx].erase(ind_it);
+                    ind_it = metapop[patch_idx].juvenile[sex_idx].erase(ind_it);
 
                     // check whether this corresponds to the last element of the stack
                     assert(metapop[patch_idx].adult_mate[
@@ -260,7 +269,7 @@ void Simulation::juvenile_mortality(
             if (uniform(rng_r) < params.mu_juv[sex_idx])
             {
                 // remove individual from list
-                patch_i.juvenile[sex_idx].erase(ind_it);
+                ind_it = patch_i.juvenile[sex_idx].erase(ind_it);
             }
             else
             {
@@ -287,7 +296,7 @@ void Simulation::mate_mortality(
             if (uniform(rng_r) < params.mu_mate[sex_idx])
             {
                 // remove individual from list
-                patch_i.adult_mate[sex_idx].erase(ind_it);
+                ind_it = patch_i.adult_mate[sex_idx].erase(ind_it);
             }
             else
             {
@@ -301,6 +310,7 @@ void Simulation::mate_mortality(
 } // end mate_mortality()
 
 
+// mortality of both sexes
 void Simulation::general_mortality()
 {
     for (int patch_idx = 0; 
@@ -311,6 +321,7 @@ void Simulation::general_mortality()
     } // for patches
 } // end general_mortality()
 
+// mortality due to the amount of care
 void Simulation::care_mortality(
         Patch &patch_i)
 {
@@ -325,15 +336,191 @@ void Simulation::care_mortality(
             if (uniform(rng_r) < params.mu_care[sex_idx])
             {
                 // remove individual from list
-                patch_i.adult_care[sex_idx].erase(ind_it);
+                ind_it = patch_i.adult_care[sex_idx].erase(ind_it);
             }
-            else
-            {
-                // no removal? Increase element
-                ind_it->time_current_state++;
-                ++ind_it;
-            }
-            
         } // for individual
     } // for sex idx
 } // end care_mortality()
+
+
+bool Simulation::ran_out_of_caring_time(
+        int const current_time, 
+        double const evolved_time)
+{
+    int evolved_time_i = floor(evolved_time);
+
+    // breeding period not yet over
+    if (current_time < evolved_time_i)
+    {
+        return(false);
+    }
+
+    // this assumes that current_time > evolved_time_i
+
+    // if there is still a bit of evolved time left
+    // then draw a random number whether it is enough to care another day
+    if (uniform(rng_r) < evolved_time - evolved_time_i)
+    {
+        return(false);
+    }
+
+    return(true);
+} // ran_out_of_caring_time
+
+// checks whether care has ended for some pairs
+// if so, removes individuals back into mating pool
+void Simulation::care_ends()
+{
+    for (int patch_idx = 0; patch_idx < params.npatches; ++patch_idx)
+    {
+        for (int sex_idx = 0; sex_idx < 2; ++sex_idx)
+        {
+            for (
+                std::vector<Individual>::iterator ind_it = 
+                        metapop[patch_idx].adult_care[sex_idx].begin();
+                        ind_it != metapop[patch_idx].adult_care[sex_idx].end();
+            )
+            {
+                if (ran_out_of_caring_time(
+                            ind_it->time_current_state
+                            ,ind_it->T[sex_idx]))
+                {
+                    metapop[patch_idx].adult_mate[sex_idx].push_back(*ind_it);
+
+                    ind_it = metapop[patch_idx].adult_care[sex_idx].erase(ind_it);
+                }
+                else
+                {
+                    ind_it->time_current_state++;
+                    ++ind_it;
+                }
+            } // end for ind_it
+        } // end for sex_idx
+    } // end for patch_idx
+} // end care_ends
+
+void Simulation::write_data_headers()
+{
+    data_file << "time;";
+
+    std::string sex_identifier[2] = {"",""};
+
+    sex_identifier[F] = "f";
+    sex_identifier[M] = "m";
+
+    for (int sex_trait_idx = 0; sex_trait_idx < 2; ++sex_trait_idx)
+    {
+        data_file << "mean_T" << sex_identifier[sex_trait_idx] << ";"
+            "ss_T" << sex_identifier[sex_trait_idx] << ";"
+            "n_care" << sex_identifier[sex_trait_idx] << ";"
+            "n_mate" << sex_identifier[sex_trait_idx] << ";"
+            "n_juv" << sex_identifier[sex_trait_idx] << ";"
+            "n_tot" << sex_identifier[sex_trait_idx] << ";";
+    }
+
+    data_file << std::endl;
+} // end void write_data_headers()
+
+// write out summary stats
+void Simulation::write_data()
+{
+    double mean_T[2] = {0.0,0.0};
+    double ss_T[2] = {0.0,0.0};
+
+    double x;
+
+    int n_care[2] = {0,0};
+    int n_mate[2] = {0,0};
+    int n_juv[2] = {0,0};
+
+    for (int patch_idx = 0; patch_idx < params.npatches; ++patch_idx)
+    {
+        for (int sex_idx = 0; sex_idx < 2; ++sex_idx)
+        {
+            for (
+                std::vector<Individual>::iterator ind_it = 
+                        metapop[patch_idx].adult_care[sex_idx].begin();
+                        ind_it != metapop[patch_idx].adult_mate[sex_idx].end();
+            )
+            {
+                for (int sex_trait_idx = 0; sex_trait_idx < 2; ++sex_trait_idx)
+                {
+                    x = ind_it->T[sex_trait_idx];
+                    mean_T[sex_trait_idx] += x;
+                    ss_T[sex_trait_idx] += x * x;
+                }
+
+            }
+                
+            n_care[sex_idx] += metapop[patch_idx].
+                adult_care[sex_idx].size();
+
+            n_mate[sex_idx] += metapop[patch_idx].
+                adult_mate[sex_idx].size();
+            
+            n_juv[sex_idx] += metapop[patch_idx].
+                juvenile[sex_idx].size();
+        }
+    } // 
+    
+    int n_tot[2] = {0,0};
+
+    data_file << time_step << ";";
+
+    for (int sex_trait_idx = 0; sex_trait_idx < 2; ++sex_trait_idx)
+    {
+        n_tot[sex_trait_idx] = n_care[sex_trait_idx] + 
+            n_mate[sex_trait_idx];
+
+        mean_T[sex_trait_idx] /= n_tot[sex_trait_idx];
+
+        ss_T[sex_trait_idx] /= n_tot[sex_trait_idx];
+        
+        data_file << mean_T[sex_trait_idx] << ";"
+            << ss_T[sex_trait_idx] << ";"
+            << n_care[sex_trait_idx] << ";"
+            << n_mate[sex_trait_idx] << ";"
+            << n_juv[sex_trait_idx] << ";";
+    }
+
+    data_file << std::endl;
+} // end void write_data
+
+void Simulation::write_parameters()
+{
+    data_file 
+        << std::endl 
+        << std::endl
+        << "init_Tf;" << params.init_Tf << std::endl
+        << "init_Tm;" << params.init_Tm << std::endl
+        << "npatches;" << params.npatches << std::endl
+        << "nf_per_patch_init;" << params.nf_per_patch_init << std::endl
+        << "nm_per_patch_init;" << params.nm_per_patch_init << std::endl
+        << "sdmu;" << params.sdmu << std::endl
+        << "sigma;" << params.sigma << std::endl
+        << "D;" << params.D << std::endl
+        << "gamma;" << params.gamma << std::endl
+        << "prob_male;" << params.prob_male << std::endl;
+
+    std::string sex_identifier[2] = {"",""};
+    sex_identifier[F] = "f";
+    sex_identifier[M] = "m";
+
+    for (int sex_idx = 0; sex_idx < 2; ++sex_idx)
+    {
+        data_file << "mu_mate" << sex_identifier[sex_idx] 
+                    << ";" << params.mu_mate[sex_idx] << std::endl
+                    << "mu_care" << sex_identifier[sex_idx] 
+                        << ";" << params.mu_care[sex_idx] << std::endl
+                    << "mu_juv" << sex_identifier[sex_idx] 
+                        << ";" << params.mu_juv[sex_idx] << std::endl
+                    << "mutate_T" << sex_identifier[sex_idx] 
+                        << ";" << params.mutate_T[sex_idx] << std::endl
+                    << "max_time_juv" << sex_identifier[sex_idx] 
+                        << ";" << params.max_time_juv[sex_idx] << std::endl
+                    << "d" << sex_identifier[sex_idx] 
+                        << ";" << params.d[sex_idx] << std::endl;
+    }
+
+
+} // end void write_parameters()

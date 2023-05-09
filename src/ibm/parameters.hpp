@@ -43,6 +43,8 @@ class Parameters
         double prob_male = 0.5;
 
         double d[2] = {0.0,0.0};
+
+        int output_interval = 1;
 };
 
 #endif
