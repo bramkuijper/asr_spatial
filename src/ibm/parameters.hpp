@@ -12,15 +12,23 @@ enum Sex
 class Parameters
 {
     public:
-        double init_Tf = 1.0;
-        double init_Tm = 1.0;
 
+        // initial value of the amount of time spent 
+        // caring for males and females
+        double init_Tf = 20.0;
+        double init_Tm = 20.0;
+
+        // number of patches in the population
         int npatches = 1;
-        int nf_per_patch_init = 5;
-        int nm_per_patch_init = 5;
+
+        // initial number of breeders in each patch
+        int nf_per_patch_init = 2500;
+        int nm_per_patch_init = 2500;
+
+        // prefix of the simulation file
         std::string base_name = "sim_asr";
 
-        long unsigned max_time_step = 30;
+        long unsigned max_time_step = 50000;
 
         // mortalities
         double mu_mate[2] = {0.001,0.001}; // female and male mortalities while mating

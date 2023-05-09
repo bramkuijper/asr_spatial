@@ -28,6 +28,8 @@ Simulation::Simulation(Parameters const &params_arg) :
     for (time_step = 0; 
             time_step < params.max_time_step; ++time_step)
     {
+
+
         // remove all individuals whose care has ended
         // and put them again in mating pool
         care_ends();
@@ -46,6 +48,8 @@ Simulation::Simulation(Parameters const &params_arg) :
 
     write_parameters();
 } // end Simulation::Simulation()
+
+
 
 
 // calculates the amount of parental care (in terms of time steps)
@@ -205,7 +209,6 @@ void Simulation::mating()
                 common_sex_idx < nrare_sex;
                 ++common_sex_idx)
         {
-            :
             ind_it->time_current_state = 0;
             metapop[patch_idx].adult_care[common_sex].push_back(*ind_it);
 
@@ -300,7 +303,6 @@ void Simulation::mate_mortality(
             }
             else
             {
-                ind_it->time_current_state++;
                 // no removal? Increase element
                 ++ind_it;
             }
@@ -337,6 +339,10 @@ void Simulation::care_mortality(
             {
                 // remove individual from list
                 ind_it = patch_i.adult_care[sex_idx].erase(ind_it);
+            }
+            else
+            {
+                ++ind_it;
             }
         } // for individual
     } // for sex idx
@@ -410,12 +416,11 @@ void Simulation::write_data_headers()
 
     for (int sex_trait_idx = 0; sex_trait_idx < 2; ++sex_trait_idx)
     {
-        data_file << "mean_T" << sex_identifier[sex_trait_idx] << ";"
-            "ss_T" << sex_identifier[sex_trait_idx] << ";"
-            "n_care" << sex_identifier[sex_trait_idx] << ";"
-            "n_mate" << sex_identifier[sex_trait_idx] << ";"
-            "n_juv" << sex_identifier[sex_trait_idx] << ";"
-            "n_tot" << sex_identifier[sex_trait_idx] << ";";
+        data_file << "mean_T_" << sex_identifier[sex_trait_idx] << ";"
+            "ss_T_" << sex_identifier[sex_trait_idx] << ";"
+            "n_care_" << sex_identifier[sex_trait_idx] << ";"
+            "n_mate_" << sex_identifier[sex_trait_idx] << ";"
+            "n_juv_" << sex_identifier[sex_trait_idx] << ";";
     }
 
     data_file << std::endl;
@@ -437,10 +442,12 @@ void Simulation::write_data()
     {
         for (int sex_idx = 0; sex_idx < 2; ++sex_idx)
         {
+            //  averaging over juvenile population
             for (
                 std::vector<Individual>::iterator ind_it = 
-                        metapop[patch_idx].adult_care[sex_idx].begin();
-                        ind_it != metapop[patch_idx].adult_mate[sex_idx].end();
+                        metapop[patch_idx].juvenile[sex_idx].begin();
+                        ind_it != metapop[patch_idx].juvenile[sex_idx].end();
+                        ++ind_it
             )
             {
                 for (int sex_trait_idx = 0; sex_trait_idx < 2; ++sex_trait_idx)
@@ -450,6 +457,38 @@ void Simulation::write_data()
                     ss_T[sex_trait_idx] += x * x;
                 }
 
+            }
+            // now averaging over care population
+            for (
+                std::vector<Individual>::iterator ind_it = 
+                        metapop[patch_idx].adult_care[sex_idx].begin();
+                        ind_it != metapop[patch_idx].adult_care[sex_idx].end();
+                        ++ind_it
+            )
+            {
+                for (int sex_trait_idx = 0; sex_trait_idx < 2; ++sex_trait_idx)
+                {
+                    x = ind_it->T[sex_trait_idx];
+                    mean_T[sex_trait_idx] += x;
+                    ss_T[sex_trait_idx] += x * x;
+                }
+
+            }
+            
+            // now averaging over to-mate population
+            for (
+                std::vector<Individual>::iterator ind_it = 
+                        metapop[patch_idx].adult_mate[sex_idx].begin();
+                        ind_it != metapop[patch_idx].adult_mate[sex_idx].end();
+                        ++ind_it
+            )
+            {
+                for (int sex_trait_idx = 0; sex_trait_idx < 2; ++sex_trait_idx)
+                {
+                    x = ind_it->T[sex_trait_idx];
+                    mean_T[sex_trait_idx] += x;
+                    ss_T[sex_trait_idx] += x * x;
+                }
             }
                 
             n_care[sex_idx] += metapop[patch_idx].
@@ -461,7 +500,7 @@ void Simulation::write_data()
             n_juv[sex_idx] += metapop[patch_idx].
                 juvenile[sex_idx].size();
         }
-    } // 
+    }
     
     int n_tot[2] = {0,0};
 
@@ -470,8 +509,17 @@ void Simulation::write_data()
     for (int sex_trait_idx = 0; sex_trait_idx < 2; ++sex_trait_idx)
     {
         n_tot[sex_trait_idx] = n_care[sex_trait_idx] + 
-            n_mate[sex_trait_idx];
+            n_mate[sex_trait_idx] + n_juv[sex_trait_idx];
 
+        if (n_tot[sex_trait_idx] < 1)
+        {
+            write_parameters();
+            return;
+        }
+    }
+
+    for (int sex_trait_idx = 0; sex_trait_idx < 2; ++sex_trait_idx)
+    {
         mean_T[sex_trait_idx] /= n_tot[sex_trait_idx];
 
         ss_T[sex_trait_idx] /= n_tot[sex_trait_idx];
@@ -508,17 +556,17 @@ void Simulation::write_parameters()
 
     for (int sex_idx = 0; sex_idx < 2; ++sex_idx)
     {
-        data_file << "mu_mate" << sex_identifier[sex_idx] 
+        data_file << "mu_mate_" << sex_identifier[sex_idx] 
                     << ";" << params.mu_mate[sex_idx] << std::endl
-                    << "mu_care" << sex_identifier[sex_idx] 
+                    << "mu_care_" << sex_identifier[sex_idx] 
                         << ";" << params.mu_care[sex_idx] << std::endl
-                    << "mu_juv" << sex_identifier[sex_idx] 
+                    << "mu_juv_" << sex_identifier[sex_idx] 
                         << ";" << params.mu_juv[sex_idx] << std::endl
-                    << "mutate_T" << sex_identifier[sex_idx] 
+                    << "mutate_T_" << sex_identifier[sex_idx] 
                         << ";" << params.mutate_T[sex_idx] << std::endl
-                    << "max_time_juv" << sex_identifier[sex_idx] 
+                    << "max_time_juv_" << sex_identifier[sex_idx] 
                         << ";" << params.max_time_juv[sex_idx] << std::endl
-                    << "d" << sex_identifier[sex_idx] 
+                    << "d_" << sex_identifier[sex_idx] 
                         << ";" << params.d[sex_idx] << std::endl;
     }
 
