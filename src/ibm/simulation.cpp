@@ -197,10 +197,11 @@ void Simulation::mating()
             ind_it = metapop[patch_idx].adult_mate[rare_sex].erase(ind_it);
         }
 
-        // remove the first members nrare_sex individuals 
+        // remove the first nrare_sex individuals 
         // of the common sex that have now mated
-        // remember, the common sex vector was randomized before mating
-        // began
+        // (remember, the common sex vector was randomized before mating
+        // began, then was mated in the order they were in and now
+        // we thus need to remove the first few common_sex individuals)
         
         std::vector<Individual>::iterator ind_it = 
                     metapop[patch_idx].adult_mate[common_sex].begin();
