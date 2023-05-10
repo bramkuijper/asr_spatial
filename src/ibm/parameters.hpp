@@ -28,7 +28,7 @@ class Parameters
         // prefix of the simulation file
         std::string base_name = "sim_asr";
 
-        long unsigned max_time_step = 500000;
+        long unsigned max_time_step = 1000000;
 
         // mortalities
         double mu_mate[2] = {0.001,0.001}; // female and male mortalities while mating
@@ -52,7 +52,7 @@ class Parameters
 
         double d[2] = {0.0,0.0};
 
-        int output_interval = 1;
+        int output_interval = 100;
 };
 
 #endif
