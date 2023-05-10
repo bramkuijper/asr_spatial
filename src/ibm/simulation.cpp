@@ -36,6 +36,7 @@ Simulation::Simulation(Parameters const &params_arg) :
 
         general_mortality();
 
+        // maturation of juveniles
         maturation();
 
         mating();
@@ -81,10 +82,10 @@ double Simulation::calculate_parental_care(Individual const &mom
 double Simulation::care_survival_prob(double const Ttot, int const local_pop_size)
 {
     // S0 * S(Ttot, N) - see L206, 208 in Long et al 2022 bioRxiv
-    return(Ttot * Ttot / (
-                (Ttot * Ttot + params.D * params.D) * 
+    return((Ttot * Ttot / (
+                (Ttot * Ttot + params.D * params.D) 
+                ))/
                 (1.0 + params.gamma * local_pop_size)
-                )
             );
 } // end care_survival_prob
 
@@ -118,6 +119,8 @@ void Simulation::mating()
 
         int ncommon_sex = common_sex_is_male ? nmales : nfemales;
         int nrare_sex = common_sex_is_male ? nfemales : nmales;
+
+        assert(rare_sex != common_sex);
 
         // total number of individuals in the local patch
         int local_density = nmales + nfemales + 
@@ -196,8 +199,8 @@ void Simulation::mating()
 
         // remove the first members nrare_sex individuals 
         // of the common sex that have now mated
-        // these are the members [0, nrare_sex) 
-        // of the random_partner[] vector
+        // remember, the common sex vector was randomized before mating
+        // began
         
         std::vector<Individual>::iterator ind_it = 
                     metapop[patch_idx].adult_mate[common_sex].begin();
@@ -242,16 +245,11 @@ void Simulation::maturation()
 
                     // remove from juv stack
                     ind_it = metapop[patch_idx].juvenile[sex_idx].erase(ind_it);
-
-                    // check whether this corresponds to the last element of the stack
-                    assert(metapop[patch_idx].adult_mate[
-                            sex_idx][
-                                    metapop[patch_idx].adult_mate[sex_idx].size() - 1
-                                        ].time_current_state == 0);
                 }
                 else
                 {
                     ++ind_it;
+                    // update of time in current state done in juv survival function
                 }
             }
         } // end for sex idx
@@ -318,8 +316,11 @@ void Simulation::general_mortality()
     for (int patch_idx = 0; 
             patch_idx < params.npatches; ++patch_idx)
     {
+
         mate_mortality(metapop[patch_idx]);
         care_mortality(metapop[patch_idx]);
+        juvenile_mortality(metapop[patch_idx]);
+
     } // for patches
 } // end general_mortality()
 
@@ -391,6 +392,7 @@ void Simulation::care_ends()
                             ind_it->time_current_state
                             ,ind_it->T[sex_idx]))
                 {
+                    ind_it->time_current_state = 0;
                     metapop[patch_idx].adult_mate[sex_idx].push_back(*ind_it);
 
                     ind_it = metapop[patch_idx].adult_care[sex_idx].erase(ind_it);
@@ -456,7 +458,6 @@ void Simulation::write_data()
                     mean_T[sex_trait_idx] += x;
                     ss_T[sex_trait_idx] += x * x;
                 }
-
             }
             // now averaging over care population
             for (
@@ -520,12 +521,12 @@ void Simulation::write_data()
 
     for (int sex_trait_idx = 0; sex_trait_idx < 2; ++sex_trait_idx)
     {
-        mean_T[sex_trait_idx] /= n_tot[sex_trait_idx];
+        mean_T[sex_trait_idx] /= n_tot[M] + n_tot[F];
 
-        ss_T[sex_trait_idx] /= n_tot[sex_trait_idx];
+        ss_T[sex_trait_idx] /= n_tot[M] + n_tot[F];
         
         data_file << mean_T[sex_trait_idx] << ";"
-            << ss_T[sex_trait_idx] << ";"
+            << ss_T[sex_trait_idx] - mean_T[sex_trait_idx] * mean_T[sex_trait_idx] << ";"
             << n_care[sex_trait_idx] << ";"
             << n_mate[sex_trait_idx] << ";"
             << n_juv[sex_trait_idx] << ";";
@@ -551,6 +552,7 @@ void Simulation::write_parameters()
         << "prob_male;" << params.prob_male << std::endl;
 
     std::string sex_identifier[2] = {"",""};
+
     sex_identifier[F] = "f";
     sex_identifier[M] = "m";
 

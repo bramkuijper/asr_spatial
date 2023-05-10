@@ -13,7 +13,7 @@ class Parameters
 {
     public:
 
-        // initial value of the amount of time spent 
+        // initial allelic value of the amount of time spent 
         // caring for males and females
         double init_Tf = 20.0;
         double init_Tm = 20.0;
@@ -28,7 +28,7 @@ class Parameters
         // prefix of the simulation file
         std::string base_name = "sim_asr";
 
-        long unsigned max_time_step = 50000;
+        long unsigned max_time_step = 500000;
 
         // mortalities
         double mu_mate[2] = {0.001,0.001}; // female and male mortalities while mating
@@ -36,7 +36,7 @@ class Parameters
         double mu_juv[2] = {0.001,0.001}; // female and male mortalities while juvenile
 
         // mutation rates
-        double mutate_T[2] = {0.05,0.05}; // mutation rates
+        double mutate_T[2] = {0.005,0.005}; // mutation rates
         double sdmu = 0.02; // mutational effect size distribution: standard deviation
 
         int max_time_juv[2] = {20,20};

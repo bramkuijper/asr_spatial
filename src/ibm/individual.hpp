@@ -19,6 +19,7 @@ class Individual
                 ,Parameters const &params
                 ,std::mt19937 &rng_r);
 
+        void operator=(Individual const &other);
 };
 
 #endif

@@ -29,9 +29,9 @@ Individual::Individual(Individual const &mom
 
         if (uniform(rng_r) < params.mutate_T[sex_idx])
         {
-            std::normal_distribution <double> mutational_effect_size{0.0,params.sdmu};
+//            std::normal_distribution <double> mutational_effect_size{0.0,params.sdmu};
 
-            T[sex_idx] += mutational_effect_size(rng_r);
+            T[sex_idx] += uniform(rng_r) < 0.5 ? 1.0 : -1.0;
 
             if (T[sex_idx] <= 0.0)
             {
@@ -40,3 +40,11 @@ Individual::Individual(Individual const &mom
         }
     }
 } // end birth constructor
+
+
+void Individual::operator=(Individual const &other)
+{
+    T[F] = other.T[F];
+    T[M] = other.T[M];
+    time_current_state = other.time_current_state;
+}

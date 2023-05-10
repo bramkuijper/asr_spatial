@@ -49,7 +49,13 @@ plots_json <- paste0('[
     },
     {
         "xvar" : "',xvar,'",
-        "yvar" : ["n_juv_f","n_juv_m"]
+        "yvar" : ["n_juv_f","n_juv_m"],
+        "ylim" : [0,250]
+    },
+    {
+        "xvar" : "',xvar,'",
+        "yvar" : "juv_sr",
+        "ylim" : [ -0.05, 1.05]
     },
     {
         "xvar" : "',xvar,'",
@@ -61,7 +67,7 @@ plots_json <- paste0('[
     }
 ]')
 
-file.name <- "sim_asr_20230509_101417900895_0"
+#file.name <- "sim_asr_20230509_101417900895_0"
 
 # if the file name not provided raise error
 if (!exists("file.name"))
@@ -87,6 +93,11 @@ data.tibble <- read_delim(file=file.name
         ,n_max=param.line-1
         ,col_names=T)
 
+if (nrow(data.tibble) > 50000)
+{
+    data.tibble <- data.tibble[data.tibble$time %% 10 == 0,]
+}
+
 # get the parameters
 data.tibble.params <- read_delim(file=file.name
         ,delim=";"
@@ -103,7 +114,8 @@ data.tibble <- data.tibble %>% mutate(
         n_ad_tot_f= n_mate_f + n_care_f,
         n_ad_tot_m= n_mate_m + n_care_m,
         n_tot_f= n_ad_tot_f + n_juv_f,
-        n_tot_m= n_ad_tot_m + n_juv_m
+        n_tot_m= n_ad_tot_m + n_juv_m,
+        juv_sr = n_juv_m / (n_juv_f + n_juv_m)
         )
 
 
