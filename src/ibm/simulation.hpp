@@ -83,6 +83,10 @@ class Simulation
         void write_data();
         void write_parameters();
 
+
+        // environmental stuff
+        void initialize_environmental_variation();
+
 };
 
 #endif

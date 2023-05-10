@@ -13,6 +13,8 @@ class Patch
         std::vector < std::vector<Individual> > adult_mate;
         std::vector < std::vector<Individual> > juvenile;
 
+        bool envt2 = false;
+
 };
 
 #endif

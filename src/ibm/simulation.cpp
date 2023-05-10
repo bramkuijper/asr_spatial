@@ -24,12 +24,12 @@ Simulation::Simulation(Parameters const &params_arg) :
 {
     write_data_headers();
 
+    initialize_environmental_variation();
+
     // go over all time steps
     for (time_step = 0; 
             time_step < params.max_time_step; ++time_step)
     {
-
-
         // remove all individuals whose care has ended
         // and put them again in mating pool
         care_ends();
@@ -41,6 +41,8 @@ Simulation::Simulation(Parameters const &params_arg) :
 
         mating();
 
+        environmental_change();
+
         if (time_step % params.output_interval == 0)
         {
             write_data();
@@ -51,6 +53,20 @@ Simulation::Simulation(Parameters const &params_arg) :
 } // end Simulation::Simulation()
 
 
+// initialize the environment of each patch
+void Simulation::initialize_environmental_variation()
+{
+    double prob_envt2 = params.environmental_change[0] / 
+        (params.environmental_change[0] + params.environmental_change[1]);
+
+
+    for (std::vector<Patch>::iterator patch_iter = metapop.begin();
+            patch_iter != metapop.end();
+            ++patch_iter)
+    {
+        patch_iter->envt2 = params.environment_coarse ? uniform(rng_r) < prob_envt2;
+    }
+} // end initialize_environmental_variation
 
 
 // calculates the amount of parental care (in terms of time steps)
@@ -279,7 +295,6 @@ void Simulation::juvenile_mortality(
                 // no removal? Increase element
                 ++ind_it;
             }
-            
         } // for individual
     } // for sex idx
 } // end juv_mortality()

@@ -34,7 +34,7 @@ class Parameters
         double mu_mate[2] = {0.001,0.001}; // female and male mortalities while mating
         double mu_care[2] = {0.001,0.001}; // female and male mortalities while caring
         
-        // female and male mortalities while juvenile
+        // female and male mortalities while juvenile in each envt
         double mu_juv[2][2] = 
             {{0.001,0.001},
                 {0.001,0.001}}; 
@@ -45,7 +45,8 @@ class Parameters
 
         int max_time_juv[2] = {20,20};
 
-        double environmental_change[2] = {0.1,0.1};
+        // change between environmental states
+        double environmental_change[2] = {0.001,0.001};
 
         // synergy parameter
         double sigma = 0.0; 

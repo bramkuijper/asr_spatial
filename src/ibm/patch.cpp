@@ -4,6 +4,7 @@
 Patch::Patch(
         Parameters const &parameters)
 {
+    envt2 = false;
     // make a vector of female breeders
     std::vector <Individual> breeders_f(parameters.nf_per_patch_init,
         Individual{parameters.init_Tf, parameters.init_Tm});
