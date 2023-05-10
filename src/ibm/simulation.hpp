@@ -86,6 +86,7 @@ class Simulation
 
         // environmental stuff
         void initialize_environmental_variation();
+        void environmental_change();
 
 };
 

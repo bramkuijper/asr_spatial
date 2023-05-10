@@ -53,18 +53,51 @@ Simulation::Simulation(Parameters const &params_arg) :
 } // end Simulation::Simulation()
 
 
-// initialize the environment of each patch
-void Simulation::initialize_environmental_variation()
+void Simulation::environmental_change()
 {
     double prob_envt2 = params.environmental_change[0] / 
         (params.environmental_change[0] + params.environmental_change[1]);
 
+    // get current envt from first patch
+    bool current_envt = metapop[0].envt2;
+
+    bool envt2_if_coarse = 
+        uniform(rng_r) < params.environmental_change[current_envt] ? !current_envt : current_envt;
 
     for (std::vector<Patch>::iterator patch_iter = metapop.begin();
             patch_iter != metapop.end();
             ++patch_iter)
     {
-        patch_iter->envt2 = params.environment_coarse ? uniform(rng_r) < prob_envt2;
+        current_envt = patch_iter->envt2;
+
+        // if envtal grain is coarse, give it general envtal state
+        if (params.environment_coarse)
+        {
+            patch_iter->envt2 = envt2_if_coarse;
+        }
+        else if (uniform(rng_r) < params.environmental_change[current_envt])
+        {
+            patch_iter->envt2 = !patch_iter->envt2;
+        }
+    }
+} // end Simulation::environmental_change
+
+// initialize the environment of each patch
+void Simulation::initialize_environmental_variation()
+{
+    double prob_envt2 = params.init_prob_envt2;
+
+    bool envt2_if_coarse = uniform(rng_r) < prob_envt2;
+
+    for (std::vector<Patch>::iterator patch_iter = metapop.begin();
+            patch_iter != metapop.end();
+            ++patch_iter)
+    {
+        // if envtal grain is coarse, give it general envtal state
+        patch_iter->envt2 = params.environment_coarse ? 
+            envt2_if_coarse
+            :
+            uniform(rng_r) < prob_envt2; // otherwise determine patch state individually
     }
 } // end initialize_environmental_variation
 
@@ -284,7 +317,7 @@ void Simulation::juvenile_mortality(
                 ind_it != patch_i.juvenile[sex_idx].end();
                 )
         {
-            if (uniform(rng_r) < params.mu_juv[sex_idx])
+            if (uniform(rng_r) < params.mu_juv[patch_i.envt2][sex_idx])
             {
                 // remove individual from list
                 ind_it = patch_i.juvenile[sex_idx].erase(ind_it);
@@ -558,6 +591,9 @@ void Simulation::write_parameters()
         << std::endl
         << "init_Tf;" << params.init_Tf << std::endl
         << "init_Tm;" << params.init_Tm << std::endl
+        << "environmental_change_0;" << params.environmental_change[0] << std::endl
+        << "environmental_change_1;" << params.environmental_change[1] << std::endl
+        << "init_prob_envt2;" << params.init_prob_envt2 << std::endl
         << "npatches;" << params.npatches << std::endl
         << "nf_per_patch_init;" << params.nf_per_patch_init << std::endl
         << "nm_per_patch_init;" << params.nm_per_patch_init << std::endl
@@ -578,8 +614,10 @@ void Simulation::write_parameters()
                     << ";" << params.mu_mate[sex_idx] << std::endl
                     << "mu_care_" << sex_identifier[sex_idx] 
                         << ";" << params.mu_care[sex_idx] << std::endl
-                    << "mu_juv_" << sex_identifier[sex_idx] 
-                        << ";" << params.mu_juv[sex_idx] << std::endl
+                    << "mu_juv_0_" << sex_identifier[sex_idx] 
+                        << ";" << params.mu_juv[0][sex_idx] << std::endl
+                    << "mu_juv_1_" << sex_identifier[sex_idx] 
+                        << ";" << params.mu_juv[1][sex_idx] << std::endl
                     << "mutate_T_" << sex_identifier[sex_idx] 
                         << ";" << params.mutate_T[sex_idx] << std::endl
                     << "max_time_juv_" << sex_identifier[sex_idx] 

@@ -19,7 +19,7 @@ class Parameters
         double init_Tm = 20.0;
 
         // number of patches in the population
-        int npatches = 1;
+        int npatches = 100;
 
         // initial number of breeders in each patch
         int nf_per_patch_init = 2500;
@@ -48,6 +48,12 @@ class Parameters
         // change between environmental states
         double environmental_change[2] = {0.001,0.001};
 
+        // initial environmental freq
+        double init_prob_envt2 = 0.5;
+
+        // whether envt is coarse or fine grained
+        bool environment_coarse = false;
+
         // synergy parameter
         double sigma = 0.0; 
         
@@ -57,7 +63,7 @@ class Parameters
 
         double prob_male = 0.5;
 
-        double d[2] = {0.0,0.0};
+        double d[2] = {0.2,0.2};
 
         int output_interval = 100;
 };
