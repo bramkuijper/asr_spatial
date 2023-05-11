@@ -18,7 +18,7 @@ Simulation::Simulation(Parameters const &params_arg) :
     ,seed{rd()} // initialize seed
     ,rng_r{seed} // initialize the random number generator
     ,uniform{0.0,1.0} // initialize the uniform distribution
-    ,patch_sampler{params.npatches - 1} // uniform distribution to sample patches
+    ,patch_sampler{0,params.npatches - 1} // uniform distribution to sample patches
     ,metapop(params.npatches,Patch(params)) // set up all the patches of the metapop
     ,data_file{params.base_name.c_str()} // start the file to write data to
 {
@@ -218,6 +218,9 @@ void Simulation::mating()
                 if (uniform(rng_r) < params.d[offspring_sex] && params.npatches > 1)
                 {
                     destination_patch = patch_sampler(rng_r);
+
+                    assert(destination_patch >= 0);
+                    assert(destination_patch < params.npatches);
                 }
 
                 // add offspring to stack

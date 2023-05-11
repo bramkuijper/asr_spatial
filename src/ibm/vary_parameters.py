@@ -13,7 +13,7 @@ basename += current_date.strftime("%Y%m%d_%H%M%S%f")
 # 2nd element mu_juv_m
 mu_juv = [ [0.001,0.001,0.001,0.001] ]
 
-sigma = [0.2]
+sigma = [0.0]
 
 nrep = 5
 
