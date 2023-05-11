@@ -11,7 +11,7 @@ basename += current_date.strftime("%Y%m%d_%H%M%S%f")
 
 # 1st element mu_juv_f
 # 2nd element mu_juv_m
-mu_juv = [ [0.001,0.001,0.001,0.001] ]
+mu_juv = [ [0.001,0.03,0.03,0.001], [0.001,0.001,0.03,0.001],[0.03,0.001,0.001,0.001]  ]
 
 sigma = [0.0]
 
