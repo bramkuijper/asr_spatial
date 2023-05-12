@@ -22,8 +22,8 @@ class Parameters
         int npatches = 100;
 
         // initial number of breeders in each patch
-        int nf_per_patch_init = 50;
-        int nm_per_patch_init = 50;
+        int nf_per_patch_init = 15;
+        int nm_per_patch_init = 15;
 
         // prefix of the simulation file
         std::string base_name = "sim_asr";

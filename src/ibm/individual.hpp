@@ -8,6 +8,7 @@ class Individual
 {
     public:
         double T[2] = {0.0,0.0};
+        double Tb[2] = {0.0,0.0};
         int time_current_state = 0;
 
         Individual(double const Tf, double const Tm);
