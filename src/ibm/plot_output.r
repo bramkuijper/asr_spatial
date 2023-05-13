@@ -39,6 +39,19 @@ plots_json <- paste0('[
         "xvar" : "',xvar,'",
         "yvar" : ["ss_T_f","ss_T_m"]
     },
+    {"xvar" : "',xvar,'",
+    "yvar" : ["mean_Tb_f","mean_Tb_m"]
+    },
+    {"xvar" : "',xvar,'",
+    "yvar" : "mean_phen"
+    },
+    {"xvar" : "',xvar,'",
+    "yvar" : "var_phen"
+    },
+    {
+        "xvar" : "',xvar,'",
+        "yvar" : ["ss_Tb_f","ss_Tb_m"]
+    },
     {
         "xvar" : "',xvar,'",
         "yvar" : ["n_care_f","n_care_m"]
@@ -169,13 +182,21 @@ for (plot_struct_idx in 1:plot.structure.l)
     plot.list.idx <- plot.list.idx + 1
 }
 
+title <- ""
+
+if (exists("params") && "mu_juv_0_f" %in% params)
+{
+    title <- paste0(
+            "mu_juv_0_f: ",params["mu_juv_0_f"],
+            ", mu_juv_1_f: ",params["mu_juv_1_f"],
+            ", mu_juv_0_m: ",params["mu_juv_0_m"],
+            ", mu_juv_1_m: ",params["mu_juv_1_m"],
+            ", sigma: ",params["sigma"])
+}
+
 
 wrap_plots(plot.list,ncol=1) + plot_annotation(
-        title=paste0(
-                "mu_juv_f: ",params["mu_juv_f"],
-                ", mu_juv_m: ",params["mu_juv_m"],
-                ", sigma: ",params["sigma"]
-                ))
+        title=title)
 
 file.name <- paste0("graph_",basename(file.name),".pdf")
 

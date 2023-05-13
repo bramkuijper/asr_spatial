@@ -88,6 +88,8 @@ class Simulation
         void initialize_environmental_variation();
         void environmental_change();
 
+        // sample function
+        Individual& sample_from_remote_patch(Sex individual_sex);
 };
 
 #endif

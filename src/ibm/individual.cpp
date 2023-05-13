@@ -6,11 +6,15 @@ Individual::Individual(
         ,double const init_Tm
         ) :
     T{init_Tf,init_Tm}
+    ,Tb{0,0}
+    ,phen{init_Tf}
 {}
 
 // copy constructor
 Individual::Individual(Individual const &other) :
     T{other.T[F],other.T[M]}
+    ,Tb{other.Tb[F],other.Tb[M]}
+    ,phen{other.phen}
     ,time_current_state{other.time_current_state}
 {}
 
@@ -20,12 +24,15 @@ Individual::Individual(Individual const &mom
         ,Parameters const &params
         ,std::mt19937 &rng_r)  :
     time_current_state{0}
+    ,phen{0.0}
 {
     std::uniform_real_distribution <double> uniform{0.0,1.0};
+    std::normal_distribution <double> norm{0.0,params.sdmu_Tb};
 
     for (int sex_idx = 0; sex_idx < 2; ++sex_idx)
     {
         T[sex_idx] = uniform(rng_r) < 0.5 ? dad.T[sex_idx] : mom.T[sex_idx];
+        Tb[sex_idx] = uniform(rng_r) < 0.5 ? dad.Tb[sex_idx] : mom.Tb[sex_idx];
 
         if (uniform(rng_r) < params.mutate_T[sex_idx])
         {
@@ -38,6 +45,11 @@ Individual::Individual(Individual const &mom
                 T[sex_idx] = 0.0;
             }
         }
+
+        if (uniform(rng_r) < params.mutate_Tb)
+        {
+            Tb[sex_idx] += norm(rng_r);
+        }
     }
 } // end birth constructor
 
@@ -46,5 +58,8 @@ void Individual::operator=(Individual const &other)
 {
     T[F] = other.T[F];
     T[M] = other.T[M];
+    Tb[F] = other.Tb[F];
+    Tb[M] = other.Tb[M];
+    phen = other.phen;
     time_current_state = other.time_current_state;
 }

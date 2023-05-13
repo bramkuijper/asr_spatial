@@ -22,8 +22,8 @@ class Parameters
         int npatches = 100;
 
         // initial number of breeders in each patch
-        int nf_per_patch_init = 15;
-        int nm_per_patch_init = 15;
+        int nf_per_patch_init = 10;
+        int nm_per_patch_init = 10;
 
         // prefix of the simulation file
         std::string base_name = "sim_asr";
@@ -41,7 +41,8 @@ class Parameters
 
         // mutation rates
         double mutate_T[2] = {0.005,0.005}; // mutation rates
-        double sdmu = 0.02; // mutational effect size distribution: standard deviation
+        double mutate_Tb = 0.005; // mutation rates
+        double sdmu_Tb = 0.1; // mutational effect size distribution: standard deviation
 
         int max_time_juv[2] = {20,20};
 

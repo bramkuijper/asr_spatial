@@ -53,11 +53,9 @@ Simulation::Simulation(Parameters const &params_arg) :
 } // end Simulation::Simulation()
 
 
+// change the local environment
 void Simulation::environmental_change()
 {
-    double prob_envt2 = params.environmental_change[0] / 
-        (params.environmental_change[0] + params.environmental_change[1]);
-
     // get current envt from first patch
     bool current_envt = metapop[0].envt2;
 
@@ -112,8 +110,8 @@ double Simulation::calculate_parental_care(Individual const &mom
                 ,Individual const &dad)
 {
     // get Tm and Tf values from dad and mom respectively
-    double Tm = dad.T[M];
-    double Tf = mom.T[F];
+    double Tm = dad.phen;
+    double Tf = mom.phen;
 
     assert(Tm >= 0.0);
     assert(Tf >= 0.0);
@@ -138,6 +136,39 @@ double Simulation::care_survival_prob(double const Ttot, int const local_pop_siz
             );
 } // end care_survival_prob
 
+// Sample an individual of sex individual_sex from a remote patch
+Individual& Simulation::sample_from_remote_patch(Sex individual_sex)
+{
+    int remote_patch_idx;
+
+    // make as many attempts as patches when sampling for a remote
+    // adult breeder
+    for (int i = 0; i < params.npatches; ++i)
+    {
+        remote_patch_idx = patch_sampler(rng_r);
+    
+        if (metapop[remote_patch_idx].adult_mate[individual_sex].size() > 1)
+        {
+            std::uniform_int_distribution <int> sampler_remote(0,
+                    metapop[remote_patch_idx].adult_mate[individual_sex].size() - 1);
+
+            return(metapop[remote_patch_idx].adult_mate[individual_sex][sampler_remote(rng_r)]);
+        } 
+        else if (metapop[remote_patch_idx].adult_care[individual_sex].size() > 1)
+        {
+            std::uniform_int_distribution <int> sampler_remote(0,
+                    metapop[remote_patch_idx].adult_care[individual_sex].size() - 1);
+
+            return(metapop[remote_patch_idx].adult_care[individual_sex][sampler_remote(rng_r)]);
+        }
+    }
+
+    // ok we tried to sample an individual of this sex a lot of times
+    // unsuccessfully. Hence we conclude population is extinct
+    write_parameters();
+    exit;
+}
+
 // let individuals randomly choose a mate: each time step each individual in the mating
 // state has one mating opportunity. Pairs are formed at random until only 
 // one sex is left in the mating state
@@ -159,6 +190,32 @@ void Simulation::mating()
         int nmales = metapop[patch_idx].adult_mate[M].size();
         int nfemales = metapop[patch_idx].adult_mate[F].size();
 
+        // if there are no juveniles, adults whatsoever, we have to 
+        // have some immigration from other patches
+        int nmales_tot = nmales + 
+            metapop[patch_idx].adult_care[M].size() + 
+            metapop[patch_idx].juvenile[M].size();
+
+        int nfemales_tot = nfemales + 
+            metapop[patch_idx].adult_care[F].size() + 
+            metapop[patch_idx].juvenile[F].size();
+
+        if (nmales_tot < 1)
+        {
+            metapop[patch_idx].adult_mate[M].push_back(sample_from_remote_patch(M));
+
+            ++nmales_tot;
+            ++nmales;
+        }
+
+        if (nfemales_tot < 1)
+        {
+            metapop[patch_idx].adult_mate[F].push_back(sample_from_remote_patch(F));
+
+            ++nfemales_tot;
+            ++nfemales;
+        }
+
         // get numbers & identifiers for common and rare sexes
         bool common_sex_is_male = nmales >= nfemales;
 
@@ -173,10 +230,10 @@ void Simulation::mating()
 
         // total number of individuals in the local patch
         int local_density = nmales + nfemales + 
-            metapop[patch_idx].adult_care[M].size() + 
             metapop[patch_idx].adult_care[F].size() + 
-            metapop[patch_idx].juvenile[M].size() + 
             metapop[patch_idx].juvenile[F].size();
+
+        int local_sex_ratio = nmales / (nmales + nfemales);
 
         // shuffle list elements containing members of the common sex
         std::shuffle(
@@ -208,8 +265,16 @@ void Simulation::mating()
                     ,rng_r
                     );
 
+
                 // determine sex
                 Sex offspring_sex = uniform(rng_r) < params.prob_male ? M : F;
+
+                Kid.phen = Kid.T[offspring_sex] + Kid.Tb[offspring_sex] * local_sex_ratio;
+
+                if (Kid.phen < 0.0)
+                {
+                    Kid.phen = 0.0;
+                }
 
                 // by default local patch is the destination
                 destination_patch = patch_idx;
@@ -368,11 +433,9 @@ void Simulation::general_mortality()
     for (int patch_idx = 0; 
             patch_idx < params.npatches; ++patch_idx)
     {
-
         mate_mortality(metapop[patch_idx]);
         care_mortality(metapop[patch_idx]);
         juvenile_mortality(metapop[patch_idx]);
-
     } // for patches
 } // end general_mortality()
 
@@ -442,7 +505,7 @@ void Simulation::care_ends()
             {
                 if (ran_out_of_caring_time(
                             ind_it->time_current_state
-                            ,ind_it->T[sex_idx]))
+                            ,ind_it->phen))
                 {
                     ind_it->time_current_state = 0;
                     metapop[patch_idx].adult_mate[sex_idx].push_back(*ind_it);
@@ -470,14 +533,17 @@ void Simulation::write_data_headers()
 
     for (int sex_trait_idx = 0; sex_trait_idx < 2; ++sex_trait_idx)
     {
-        data_file << "mean_T_" << sex_identifier[sex_trait_idx] << ";"
-            "ss_T_" << sex_identifier[sex_trait_idx] << ";"
-            "n_care_" << sex_identifier[sex_trait_idx] << ";"
-            "n_mate_" << sex_identifier[sex_trait_idx] << ";"
-            "n_juv_" << sex_identifier[sex_trait_idx] << ";";
+        data_file 
+            << "mean_T_" << sex_identifier[sex_trait_idx] << ";"
+            << "ss_T_" << sex_identifier[sex_trait_idx] << ";"
+            << "mean_Tb_" << sex_identifier[sex_trait_idx] << ";"
+            << "ss_Tb_" << sex_identifier[sex_trait_idx] << ";"
+            << "n_care_" << sex_identifier[sex_trait_idx] << ";"
+            << "n_mate_" << sex_identifier[sex_trait_idx] << ";"
+            << "n_juv_" << sex_identifier[sex_trait_idx] << ";";
     }
 
-    data_file << std::endl;
+    data_file << "mean_phen;var_phen;" << std::endl;
 } // end void write_data_headers()
 
 // write out summary stats
@@ -485,12 +551,19 @@ void Simulation::write_data()
 {
     double mean_T[2] = {0.0,0.0};
     double ss_T[2] = {0.0,0.0};
+    double mean_Tb[2] = {0.0,0.0};
+    double ss_Tb[2] = {0.0,0.0};
+
+    double mean_phen = 0.0;
+    double ss_phen = 0.0;
 
     double x;
 
     int n_care[2] = {0,0};
     int n_mate[2] = {0,0};
     int n_juv[2] = {0,0};
+
+    // initialize 0-vector to hold patch counts of numbers of females
 
     for (int patch_idx = 0; patch_idx < params.npatches; ++patch_idx)
     {
@@ -509,8 +582,17 @@ void Simulation::write_data()
                     x = ind_it->T[sex_trait_idx];
                     mean_T[sex_trait_idx] += x;
                     ss_T[sex_trait_idx] += x * x;
+
+                    x = ind_it->Tb[sex_trait_idx];
+                    mean_Tb[sex_trait_idx] += x;
+                    ss_Tb[sex_trait_idx] += x * x;
+                    
+                    x = ind_it->phen;
+                    mean_phen += x;
+                    ss_phen += x * x;
                 }
             }
+
             // now averaging over care population
             for (
                 std::vector<Individual>::iterator ind_it = 
@@ -524,6 +606,14 @@ void Simulation::write_data()
                     x = ind_it->T[sex_trait_idx];
                     mean_T[sex_trait_idx] += x;
                     ss_T[sex_trait_idx] += x * x;
+
+                    x = ind_it->Tb[sex_trait_idx];
+                    mean_Tb[sex_trait_idx] += x;
+                    ss_Tb[sex_trait_idx] += x * x;
+                    
+                    x = ind_it->phen;
+                    mean_phen += x;
+                    ss_phen += x * x;
                 }
 
             }
@@ -541,6 +631,14 @@ void Simulation::write_data()
                     x = ind_it->T[sex_trait_idx];
                     mean_T[sex_trait_idx] += x;
                     ss_T[sex_trait_idx] += x * x;
+
+                    x = ind_it->Tb[sex_trait_idx];
+                    mean_Tb[sex_trait_idx] += x;
+                    ss_Tb[sex_trait_idx] += x * x;
+                    
+                    x = ind_it->phen;
+                    mean_phen += x;
+                    ss_phen += x * x;
                 }
             }
                 
@@ -563,12 +661,6 @@ void Simulation::write_data()
     {
         n_tot[sex_trait_idx] = n_care[sex_trait_idx] + 
             n_mate[sex_trait_idx] + n_juv[sex_trait_idx];
-
-        if (n_tot[sex_trait_idx] < 1)
-        {
-            write_parameters();
-            return;
-        }
     }
 
     for (int sex_trait_idx = 0; sex_trait_idx < 2; ++sex_trait_idx)
@@ -577,15 +669,30 @@ void Simulation::write_data()
 
         ss_T[sex_trait_idx] /= n_tot[M] + n_tot[F];
         
-        data_file << mean_T[sex_trait_idx] << ";"
+        mean_Tb[sex_trait_idx] /= n_tot[M] + n_tot[F];
+
+        ss_Tb[sex_trait_idx] /= n_tot[M] + n_tot[F];
+        
+        data_file 
+            << mean_T[sex_trait_idx] << ";"
             << ss_T[sex_trait_idx] - mean_T[sex_trait_idx] * mean_T[sex_trait_idx] << ";"
+            << mean_Tb[sex_trait_idx] << ";"
+            << ss_Tb[sex_trait_idx] - mean_Tb[sex_trait_idx] * mean_Tb[sex_trait_idx] << ";"
             << n_care[sex_trait_idx] << ";"
             << n_mate[sex_trait_idx] << ";"
             << n_juv[sex_trait_idx] << ";";
     }
 
-    data_file << std::endl;
+    mean_phen /= n_tot[M] + n_tot[F];
+
+    ss_phen /= n_tot[M] + n_tot[F];
+
+    data_file 
+        << mean_phen << ";"
+        << ss_phen - mean_phen * mean_phen << ";"
+        << std::endl;
 } // end void write_data
+
 
 void Simulation::write_parameters()
 {
@@ -600,7 +707,8 @@ void Simulation::write_parameters()
         << "npatches;" << params.npatches << std::endl
         << "nf_per_patch_init;" << params.nf_per_patch_init << std::endl
         << "nm_per_patch_init;" << params.nm_per_patch_init << std::endl
-        << "sdmu;" << params.sdmu << std::endl
+        << "sdmu_Tb;" << params.sdmu_Tb << std::endl
+        << "mutate_Tb;" << params.mutate_Tb << std::endl
         << "sigma;" << params.sigma << std::endl
         << "D;" << params.D << std::endl
         << "gamma;" << params.gamma << std::endl
