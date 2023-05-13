@@ -233,7 +233,7 @@ void Simulation::mating()
             metapop[patch_idx].adult_care[F].size() + 
             metapop[patch_idx].juvenile[F].size();
 
-        int local_sex_ratio = nmales / (nmales + nfemales);
+        int local_sex_ratio = (double)nmales / (nmales + nfemales);
 
         // shuffle list elements containing members of the common sex
         std::shuffle(
@@ -587,10 +587,11 @@ void Simulation::write_data()
                     mean_Tb[sex_trait_idx] += x;
                     ss_Tb[sex_trait_idx] += x * x;
                     
-                    x = ind_it->phen;
-                    mean_phen += x;
-                    ss_phen += x * x;
                 }
+                
+                x = ind_it->phen;
+                mean_phen += x;
+                ss_phen += x * x;
             }
 
             // now averaging over care population
@@ -611,11 +612,11 @@ void Simulation::write_data()
                     mean_Tb[sex_trait_idx] += x;
                     ss_Tb[sex_trait_idx] += x * x;
                     
-                    x = ind_it->phen;
-                    mean_phen += x;
-                    ss_phen += x * x;
                 }
 
+                x = ind_it->phen;
+                mean_phen += x;
+                ss_phen += x * x;
             }
             
             // now averaging over to-mate population
@@ -636,10 +637,11 @@ void Simulation::write_data()
                     mean_Tb[sex_trait_idx] += x;
                     ss_Tb[sex_trait_idx] += x * x;
                     
-                    x = ind_it->phen;
-                    mean_phen += x;
-                    ss_phen += x * x;
                 }
+                    
+                x = ind_it->phen;
+                mean_phen += x;
+                ss_phen += x * x;
             }
                 
             n_care[sex_idx] += metapop[patch_idx].

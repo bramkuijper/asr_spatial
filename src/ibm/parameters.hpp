@@ -19,7 +19,7 @@ class Parameters
         double init_Tm = 20.0;
 
         // number of patches in the population
-        int npatches = 100;
+        int npatches = 50;
 
         // initial number of breeders in each patch
         int nf_per_patch_init = 10;
