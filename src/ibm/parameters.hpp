@@ -42,7 +42,7 @@ class Parameters
         // mutation rates
         double mutate_T[2] = {0.005,0.005}; // mutation rates
         double mutate_Tb = 0.005; // mutation rates
-        double sdmu_Tb = 0.1; // mutational effect size distribution: standard deviation
+        double sdmu_Tb = 0.2; // mutational effect size distribution: standard deviation
 
         int max_time_juv[2] = {20,20};
 
@@ -60,7 +60,7 @@ class Parameters
         
         double D = 20.0;
 
-        double gamma = 0.003;
+        double gamma = 0.03;
 
         double prob_male = 0.5;
 

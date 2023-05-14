@@ -165,9 +165,15 @@ Individual& Simulation::sample_from_remote_patch(Sex individual_sex)
 
     // ok we tried to sample an individual of this sex a lot of times
     // unsuccessfully. Hence we conclude population is extinct
-    write_parameters();
-    exit;
-}
+    remote_patch_idx = patch_sampler(rng_r);
+
+    metapop[remote_patch_idx].adult_mate[individual_sex].push_back(
+            Individual(params.init_Tf,params.init_Tm));
+
+    return(metapop[remote_patch_idx].adult_mate[individual_sex][
+            metapop[remote_patch_idx].adult_mate[individual_sex].size() - 1
+    ]);
+} // end sample_from_remote_patch
 
 // let individuals randomly choose a mate: each time step each individual in the mating
 // state has one mating opportunity. Pairs are formed at random until only 
@@ -233,7 +239,7 @@ void Simulation::mating()
             metapop[patch_idx].adult_care[F].size() + 
             metapop[patch_idx].juvenile[F].size();
 
-        int local_sex_ratio = (double)nmales / (nmales + nfemales);
+        int local_sex_ratio = (double) nmales / (nmales + nfemales);
 
         // shuffle list elements containing members of the common sex
         std::shuffle(
@@ -269,7 +275,7 @@ void Simulation::mating()
                 // determine sex
                 Sex offspring_sex = uniform(rng_r) < params.prob_male ? M : F;
 
-                Kid.phen = Kid.T[offspring_sex] + Kid.Tb[offspring_sex] * local_sex_ratio;
+                Kid.phen = Kid.T[offspring_sex] + Kid.Tb[offspring_sex] * (1.0 + local_sex_ratio);
 
                 if (Kid.phen < 0.0)
                 {

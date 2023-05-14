@@ -62,8 +62,7 @@ plots_json <- paste0('[
     },
     {
         "xvar" : "',xvar,'",
-        "yvar" : ["n_juv_f","n_juv_m"],
-        "ylim" : [0,250]
+        "yvar" : ["n_juv_f","n_juv_m"]
     },
     {
         "xvar" : "',xvar,'",
@@ -184,7 +183,7 @@ for (plot_struct_idx in 1:plot.structure.l)
 
 title <- ""
 
-if (exists("params") && "mu_juv_0_f" %in% params)
+if (exists("params") && "mu_juv_0_f" %in% names(params))
 {
     title <- paste0(
             "mu_juv_0_f: ",params["mu_juv_0_f"],
