@@ -139,6 +139,8 @@ double Simulation::care_survival_prob(double const Ttot, int const local_pop_siz
 // Sample an individual of sex individual_sex from a remote patch
 Individual& Simulation::sample_from_remote_patch(Sex individual_sex)
 {
+    ++n_sampled_remote;
+
     int remote_patch_idx;
 
     // make as many attempts as patches when sampling for a remote
@@ -181,6 +183,8 @@ Individual& Simulation::sample_from_remote_patch(Sex individual_sex)
 //
 void Simulation::mating()
 {
+    n_sampled_remote = 0;
+
     // make a vector with integers then shuffle
     int mother_idx, father_idx;
 
@@ -530,7 +534,7 @@ void Simulation::care_ends()
 
 void Simulation::write_data_headers()
 {
-    data_file << "time;";
+    data_file << "time;n_sample_remote;";
 
     std::string sex_identifier[2] = {"",""};
 
@@ -546,10 +550,12 @@ void Simulation::write_data_headers()
             << "ss_Tb_" << sex_identifier[sex_trait_idx] << ";"
             << "n_care_" << sex_identifier[sex_trait_idx] << ";"
             << "n_mate_" << sex_identifier[sex_trait_idx] << ";"
-            << "n_juv_" << sex_identifier[sex_trait_idx] << ";";
+            << "n_juv_" << sex_identifier[sex_trait_idx] << ";"
+            << "mean_phen_" << sex_identifier[sex_trait_idx] << ";"
+            << "var_phen_" << sex_identifier[sex_trait_idx] << ";";
     }
 
-    data_file << "mean_phen;var_phen;" << std::endl;
+    data_file << std::endl;
 } // end void write_data_headers()
 
 // write out summary stats
@@ -560,8 +566,8 @@ void Simulation::write_data()
     double mean_Tb[2] = {0.0,0.0};
     double ss_Tb[2] = {0.0,0.0};
 
-    double mean_phen = 0.0;
-    double ss_phen = 0.0;
+    double mean_phen[2] = {0.0,0.0};
+    double ss_phen[2] = {0.0,0.0};
 
     double x;
 
@@ -593,11 +599,11 @@ void Simulation::write_data()
                     mean_Tb[sex_trait_idx] += x;
                     ss_Tb[sex_trait_idx] += x * x;
                     
+                    x = ind_it->phen;
+                    mean_phen[sex_idx] += x;
+                    ss_phen[sex_idx] += x * x;
                 }
                 
-                x = ind_it->phen;
-                mean_phen += x;
-                ss_phen += x * x;
             }
 
             // now averaging over care population
@@ -618,11 +624,11 @@ void Simulation::write_data()
                     mean_Tb[sex_trait_idx] += x;
                     ss_Tb[sex_trait_idx] += x * x;
                     
+                    x = ind_it->phen;
+                    mean_phen[sex_idx] += x;
+                    ss_phen[sex_idx] += x * x;
                 }
 
-                x = ind_it->phen;
-                mean_phen += x;
-                ss_phen += x * x;
             }
             
             // now averaging over to-mate population
@@ -643,11 +649,11 @@ void Simulation::write_data()
                     mean_Tb[sex_trait_idx] += x;
                     ss_Tb[sex_trait_idx] += x * x;
                     
+                    x = ind_it->phen;
+                    mean_phen[sex_idx] += x;
+                    ss_phen[sex_idx] += x * x;
                 }
                     
-                x = ind_it->phen;
-                mean_phen += x;
-                ss_phen += x * x;
             }
                 
             n_care[sex_idx] += metapop[patch_idx].
@@ -663,7 +669,7 @@ void Simulation::write_data()
     
     int n_tot[2] = {0,0};
 
-    data_file << time_step << ";";
+    data_file << time_step << ";" << n_sampled_remote << ";";
 
     for (int sex_trait_idx = 0; sex_trait_idx < 2; ++sex_trait_idx)
     {
@@ -680,6 +686,10 @@ void Simulation::write_data()
         mean_Tb[sex_trait_idx] /= n_tot[M] + n_tot[F];
 
         ss_Tb[sex_trait_idx] /= n_tot[M] + n_tot[F];
+
+        mean_phen[sex_trait_idx] /= n_tot[M] + n_tot[F];
+
+        ss_phen[sex_trait_idx] /= n_tot[M] + n_tot[F];
         
         data_file 
             << mean_T[sex_trait_idx] << ";"
@@ -688,17 +698,12 @@ void Simulation::write_data()
             << ss_Tb[sex_trait_idx] - mean_Tb[sex_trait_idx] * mean_Tb[sex_trait_idx] << ";"
             << n_care[sex_trait_idx] << ";"
             << n_mate[sex_trait_idx] << ";"
-            << n_juv[sex_trait_idx] << ";";
+            << n_juv[sex_trait_idx] << ";"
+            << mean_phen[sex_trait_idx] << ";"
+            << ss_phen[sex_trait_idx] - mean_phen[sex_trait_idx] * mean_phen[sex_trait_idx] << ";";
     }
 
-    mean_phen /= n_tot[M] + n_tot[F];
-
-    ss_phen /= n_tot[M] + n_tot[F];
-
-    data_file 
-        << mean_phen << ";"
-        << ss_phen - mean_phen * mean_phen << ";"
-        << std::endl;
+    data_file << std::endl;
 } // end void write_data
 
 

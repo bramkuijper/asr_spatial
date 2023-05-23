@@ -6,7 +6,8 @@ Individual::Individual(
         ,double const init_Tm
         ) :
     T{init_Tf,init_Tm}
-    ,Tb{0,0}
+    ,Tb_early_life_sr{0,0}
+    ,Tb_current_sr{0,0}
     ,phen{init_Tf}
 {}
 

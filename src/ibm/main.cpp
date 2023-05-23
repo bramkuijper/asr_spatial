@@ -17,8 +17,9 @@ int main(int argc, char **argv)
     params.init_Tf = std::stod(argv[9]);
     params.init_Tm = std::stod(argv[10]);
     params.gamma = std::stod(argv[11]);
-    params.max_time_step = std::stoi(argv[12]);
-    params.base_name = argv[13];
+    params.npatches = std::stoi(argv[12]);
+    params.max_time_step = std::stoi(argv[13]);
+    params.base_name = argv[14];
     
     Simulation sim(params);
 }

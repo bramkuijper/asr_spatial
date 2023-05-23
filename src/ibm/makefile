@@ -2,7 +2,7 @@ EXE=asr_spatial.exe
 CPP=simulation.cpp main.cpp individual.cpp patch.cpp
 HPP=simulation.hpp parameters.hpp individual.hpp patch.hpp
 CXX=g++
-CXXFLAGS=-Wall -ggdb -std=c++14 -O3
+CXXFLAGS=-Wall -std=c++14 -O3
 
 
 $(EXE) : $(CPP) $(HPP)

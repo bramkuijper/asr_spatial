@@ -11,15 +11,19 @@ basename += current_date.strftime("%Y%m%d_%H%M%S%f")
 
 # 1st element mu_juv_f
 # 2nd element mu_juv_m
-mu_juv = [ [0.001,0.03,0.03,0.001], [0.001,0.001,0.03,0.001],[0.03,0.001,0.001,0.001]  ]
+#mu_juv = [ [0.001,0.03,0.03,0.001], [0.001,0.001,0.03,0.001],[0.03,0.001,0.001,0.001]  ]
+mu_juv = [ [0.001,0.001,0.001,0.001]]
 
-init_Tf_Tm = [[20,20],[20,10],[10,20],[10,10],[10,0],[0,10],[5,5],[5,0],[0,5]]
+#init_Tf_Tm = [[20,20],[20,10],[10,20],[10,10],[10,0],[0,10],[5,5],[5,0],[0,5]]
+init_Tf_Tm = [[20,20],[20,10],[10,20],[15,10],[10,15],[5,10],[10,5]]
 
 sigma = [0.0]
 
-gamma = 0.003
+gamma = 0.03
 
-max_time_step = 1000000
+npatches = 50
+
+max_time_step = 2000000
 
 nrep = 1
 
@@ -40,6 +44,7 @@ for replicate_i in range(0,nrep):
                       f" {sigma_i} {envt_ch[0]} {envt_ch[1]} {init_prob}" +
                       f" {init_Tf_Tm_i[0]} {init_Tf_Tm_i[1]}" +
                       f" {gamma}" +
+                      f" {npatches}" +
                       f" {max_time_step}" +
                       f" {basename}_{counter}"  )
 

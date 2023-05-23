@@ -41,6 +41,8 @@ class Simulation
         // metapopulation consisting of patches
         std::vector<Patch> metapop;
 
+        int n_sampled_remote = 0;
+
     public:
         Simulation(Parameters const &params);
 
