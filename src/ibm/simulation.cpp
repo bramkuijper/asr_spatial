@@ -243,7 +243,7 @@ void Simulation::mating()
             metapop[patch_idx].adult_care[F].size() + 
             metapop[patch_idx].juvenile[F].size();
 
-        int local_sex_ratio = (double) nmales / (nmales + nfemales);
+        double local_sex_ratio = (double) nmales / (nmales + nfemales);
 
         // shuffle list elements containing members of the common sex
         std::shuffle(
@@ -272,6 +272,8 @@ void Simulation::mating()
                     metapop[patch_idx].adult_mate[F][rare_sex_idx]
                     ,metapop[patch_idx].adult_mate[M][rare_sex_idx]
                     ,params
+                    ,local_sex_ratio
+                    ,metapop[patch_idx].envt2
                     ,rng_r
                     );
 
@@ -550,9 +552,13 @@ void Simulation::write_data_headers()
             << "ss_Tb_" << sex_identifier[sex_trait_idx] << ";"
             << "n_care_" << sex_identifier[sex_trait_idx] << ";"
             << "n_mate_" << sex_identifier[sex_trait_idx] << ";"
-            << "n_juv_" << sex_identifier[sex_trait_idx] << ";"
-            << "mean_phen_" << sex_identifier[sex_trait_idx] << ";"
-            << "var_phen_" << sex_identifier[sex_trait_idx] << ";";
+            << "n_juv_" << sex_identifier[sex_trait_idx] << ";";
+
+        for (int envt_idx = 0; envt_idx < 2; ++envt_idx)
+        {
+            data_file << "mean_phen" << sex_identifier[sex_trait_idx] << envt_idx << ";"
+                << "var_phen" << sex_identifier[sex_trait_idx] << envt_idx << ";";
+        }
     }
 
     data_file << std::endl;
@@ -561,16 +567,19 @@ void Simulation::write_data_headers()
 // write out summary stats
 void Simulation::write_data()
 {
-    double mean_T[2] = {0.0,0.0};
-    double ss_T[2] = {0.0,0.0};
-    double mean_Tb[2] = {0.0,0.0};
-    double ss_Tb[2] = {0.0,0.0};
-
-    double mean_phen[2] = {0.0,0.0};
-    double ss_phen[2] = {0.0,0.0};
+    double mean_T[2] = {0,0};
+    double ss_T[2] = {0,0};
+    double mean_Tb[2] = {0,0};
+    double ss_Tb[2] = {0,0};
+    double mean_phen[2][2] = {{0,0},{0,0}};
+    double ss_phen[2][2] = {{0,0},{0,0}};
 
     double x;
 
+    int n_care_e[2][2] = {{0,0},{0,0}};
+    int n_mate_e[2][2] = {{0,0},{0,0}};
+    int n_juv_e[2][2] = {{0,0},{0,0}};
+    
     int n_care[2] = {0,0};
     int n_mate[2] = {0,0};
     int n_juv[2] = {0,0};
@@ -598,12 +607,13 @@ void Simulation::write_data()
                     x = ind_it->Tb[sex_trait_idx];
                     mean_Tb[sex_trait_idx] += x;
                     ss_Tb[sex_trait_idx] += x * x;
-                    
-                    x = ind_it->phen;
-                    mean_phen[sex_idx] += x;
-                    ss_phen[sex_idx] += x * x;
                 }
-                
+
+                x = ind_it->phen;
+                mean_phen[sex_idx][ind_it->natal_envt] += x;
+                ss_phen[sex_idx][ind_it->natal_envt] += x * x;
+
+                ++n_juv_e[sex_idx][ind_it->natal_envt];
             }
 
             // now averaging over care population
@@ -623,12 +633,13 @@ void Simulation::write_data()
                     x = ind_it->Tb[sex_trait_idx];
                     mean_Tb[sex_trait_idx] += x;
                     ss_Tb[sex_trait_idx] += x * x;
-                    
-                    x = ind_it->phen;
-                    mean_phen[sex_idx] += x;
-                    ss_phen[sex_idx] += x * x;
                 }
 
+                x = ind_it->phen;
+                mean_phen[sex_idx][ind_it->natal_envt] += x;
+                ss_phen[sex_idx][ind_it->natal_envt] += x * x;
+
+                ++n_care_e[sex_idx][ind_it->natal_envt];
             }
             
             // now averaging over to-mate population
@@ -648,14 +659,14 @@ void Simulation::write_data()
                     x = ind_it->Tb[sex_trait_idx];
                     mean_Tb[sex_trait_idx] += x;
                     ss_Tb[sex_trait_idx] += x * x;
-                    
-                    x = ind_it->phen;
-                    mean_phen[sex_idx] += x;
-                    ss_phen[sex_idx] += x * x;
                 }
                     
-            }
+                mean_phen[sex_idx][ind_it->natal_envt] += x;
+                ss_phen[sex_idx][ind_it->natal_envt] += x * x;
                 
+                ++n_mate_e[sex_idx][ind_it->natal_envt];
+            }
+
             n_care[sex_idx] += metapop[patch_idx].
                 adult_care[sex_idx].size();
 
@@ -670,6 +681,8 @@ void Simulation::write_data()
     int n_tot[2] = {0,0};
 
     data_file << time_step << ";" << n_sampled_remote << ";";
+    
+    int n_i;
 
     for (int sex_trait_idx = 0; sex_trait_idx < 2; ++sex_trait_idx)
     {
@@ -686,10 +699,6 @@ void Simulation::write_data()
         mean_Tb[sex_trait_idx] /= n_tot[M] + n_tot[F];
 
         ss_Tb[sex_trait_idx] /= n_tot[M] + n_tot[F];
-
-        mean_phen[sex_trait_idx] /= n_tot[M] + n_tot[F];
-
-        ss_phen[sex_trait_idx] /= n_tot[M] + n_tot[F];
         
         data_file 
             << mean_T[sex_trait_idx] << ";"
@@ -698,11 +707,21 @@ void Simulation::write_data()
             << ss_Tb[sex_trait_idx] - mean_Tb[sex_trait_idx] * mean_Tb[sex_trait_idx] << ";"
             << n_care[sex_trait_idx] << ";"
             << n_mate[sex_trait_idx] << ";"
-            << n_juv[sex_trait_idx] << ";"
-            << mean_phen[sex_trait_idx] << ";"
-            << ss_phen[sex_trait_idx] - mean_phen[sex_trait_idx] * mean_phen[sex_trait_idx] << ";";
-    }
+            << n_juv[sex_trait_idx] << ";";
 
+        for (int envt_idx = 0; envt_idx < 2; ++envt_idx)
+        {
+            n_i = n_juv_e[sex_trait_idx][envt_idx] + 
+                n_mate_e[sex_trait_idx][envt_idx] + 
+                n_care_e[sex_trait_idx][envt_idx];
+
+            mean_phen[sex_trait_idx][envt_idx] /= n_i;
+
+            data_file <<  mean_phen[sex_trait_idx][envt_idx] << ";" 
+                << ss_phen[sex_trait_idx][envt_idx]/n_i - 
+                mean_phen[sex_trait_idx][envt_idx]*mean_phen[sex_trait_idx][envt_idx] << ";";
+        }
+    }
     data_file << std::endl;
 } // end void write_data
 

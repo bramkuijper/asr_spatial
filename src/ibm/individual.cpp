@@ -6,8 +6,7 @@ Individual::Individual(
         ,double const init_Tm
         ) :
     T{init_Tf,init_Tm}
-    ,Tb_early_life_sr{0,0}
-    ,Tb_current_sr{0,0}
+    ,Tb{0,0}
     ,phen{init_Tf}
 {}
 
@@ -17,15 +16,21 @@ Individual::Individual(Individual const &other) :
     ,Tb{other.Tb[F],other.Tb[M]}
     ,phen{other.phen}
     ,time_current_state{other.time_current_state}
+    ,natal_sr{other.natal_sr}
+    ,natal_envt{other.natal_envt}
 {}
 
 // birth constructor
 Individual::Individual(Individual const &mom
         ,Individual const &dad
         ,Parameters const &params
+        ,double const natal_sr
+        ,bool const natal_envt
         ,std::mt19937 &rng_r)  :
     time_current_state{0}
     ,phen{0.0}
+    ,natal_sr{natal_sr}
+    ,natal_envt{natal_envt}
 {
     std::uniform_real_distribution <double> uniform{0.0,1.0};
     std::normal_distribution <double> norm{0.0,params.sdmu_Tb};
